@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Moq.Modules</id>
+    <version>1.0.0</version>
+    <title>Modular, reusable mocks that can be distributed with shared libraries</title>
+    <authors>Martin Halliday</authors>
+    <owners>Martin Halliday</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Allows package authors to supply re-uable mocks for their library</description>
+    <copyright>Copyright 2015</copyright>
+    <releaseNotes>First release</releaseNotes>
+    <projectUrl>https://github.com/Bikeman868/Moq.Modules</projectUrl>
+    <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
+    <tags>moq mock reusable</tags>
+    <dependencies>
+      <dependency id="Moq" version="4.2" />
+    </dependencies>
+    <references>
+      <reference file="Moq.Modules.dll"/>
+    </references>
+  </metadata>
+  <files>
+    <file src="bin\Release\Moq.Modules.dll" target="lib"/>
+    <file src="*.md" target=""/>
+    <file src="*.txt" target=""/>
+  </files>
+</package>
