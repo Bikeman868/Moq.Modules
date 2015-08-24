@@ -18,7 +18,7 @@ This NuGet package solves a couple of problems
    those mocks is time consuming.
 
 This package solves both of these problems by allowing library authors to distribute mocks
-with thsir library, so that users of their library can use a mock the library in their unit
+with their library, so that users of their library can use a mock the library in their unit
 tests.
 
 For example if you install the [Prius ORM](https://github.com/Bikeman868/Prius) and use it to
@@ -26,11 +26,15 @@ access your database, you can install the Prius.Mocks NuGet package into your un
 and use a mock of Prius in your tests. This allows you to run stand-alone unit tests with mocked
 data that do not depend on a database connection.
 
-## Example of writing a re-usable mock using Moq
-This class uses Moq to provide a mock implementation of an ILog interface. In this case the
-mock logs to the trace output, which NUnit will include in the test results.
+## Writing a re-usable mock using Moq
+The example below uses Moq.Modules and Moq to provide a mock implementation of an ILog interface.
+In this example the mock implementation sends log output to the trace output - which NUnit will 
+include in the test results.
 
-    public class MockLog: MockImplementationProvider<ILog>
+    using Moq;
+    using Moq.Modules;
+	
+	public class MockLog: MockImplementationProvider<ILog>
     {
         protected override void SetupMock(IMockProducer mockProducer, Mock<ILog> mock)
         {
@@ -56,18 +60,25 @@ mock logs to the trace output, which NUnit will include in the test results.
 
 The key elements of this example are:
 
-1. Your mock should inherit from `MockImplementationProvider<T>` where `T` is the interface that you
-   are writing a mock for.
-2. You must override the abstract `SetupMock` method of `MockImplementationProvider<T>`. This is where
-   you use Moq to define the behaviour of your mock.
-3. If your mock depends on other mocks, then you can use the `mockProducer` parameter to get access
-   to the mocks of the other interfaces you need. Note that this is not illustrated in the example above.
+1. Use the NuGet package manager to install the Moq.Modules package into your mocks project.
+2. Add a using statement for Moq.Modules and Moq.
+3. Your mock should inherit from `MockImplementationProvider<T>` where `T` is the interface 
+   that you are writing a mock for (`ILog` in the example above).
+4. You must override the abstract `SetupMock` method of `MockImplementationProvider<T>`.
+   This is where you use Moq to define the behaviour of your mock, using all the features of 
+   Moq you are familiar with.
+5. If your mock depends on other mocks, then you can use the `mockProducer` parameter to 
+   get access to the mocks of the other interfaces that you need. Note that this is not 
+   illustrated in the example above.
 
-## Example of writing a re-useable mock using a class
-In this example, the interface is mocked using an instance of the real implementation, rather than 
-using Moq. The unit tests that use this mock will not know the difference, you should choose 
-the style of mocking that suits your situation.
+## Writing a re-useable mock using a class
+This is and example of mocking an interface by writing a class that implements the interface 
+rather than using Moq. The way that Moq.Modules works means that you can switch between
+using Moq and writing a class, and the unit tests that use the mock will still compile and run
+without any changes.
 
+    using Moq.Modules;
+	
     public class MockQueueFactory: ConcreteImplementationProvider<IQueueFactory>
     {
         protected override IQueueFactory GetImplementation(IMockProducer mockProducer)
@@ -79,7 +90,7 @@ the style of mocking that suits your situation.
 The key elements of this example are:
 
 1. Your mock should inherit from `ConcreteImplementationProvider<T>` where `T` is the interface that you
-   are writing a mock for.
+   are writing a mock for (`IQueueFactory` in the example above).
 2. You must override the abstract `GetImplementation` method, and a return an object that implements the
    interface that is being mocked.
 3. If your mock depends on other mocks, then you can use the `mockProducer` parameter to get access
@@ -87,9 +98,9 @@ The key elements of this example are:
 
 ## Making mocks available to unit tests
 If you include the assembly containing your mocks in the project that contains the unit tests, these mocks
-will be available to those unit tests. The base class that unit tests derrive from will use reflection to find
+will be available to those unit tests. The base class that unit tests derive from will use reflection to find
 and load the mocks automatically. This means that library authors just need to provide a NuGet
-package containg mocks, and installing this package into the unit test project will instantly make all the 
+package containing mocks, and installing this package into the unit test project will instantly make all the 
 mocks available to unit tests without any additional coding.
 
 ## Writing unit tests
@@ -99,9 +110,9 @@ To use this package in your unit tests:
 2. Add `using Moq.Modules;` at the top of each unit test source file.
 3. Change your unit test class to inherit from `Moq.Modules.TestBase`.
 4. In the initialization method of your unit test, where you construct the object under test,
-   call the `SetupMock<T>()` method for each parameter to the constructor. If there is a mock 
-   implementation available for this interface it will use it, otherwise it will use Moq to 
-   return a mock with no behaviour set up.
+   call the `SetupMock<T>()` method to get a mock implementation of each interface that the
+   object depends on. If there is a mock implementation available for this interface 
+   Moq.Modules will use it, otherwise it will use Moq to return a mock with no behaviour set up.
 5. Write your unit tests as you normally would
 
 Example unit test setup:
@@ -141,24 +152,25 @@ Example unit test setup:
 In your unit tests you will want to test different use cases by altering the behaviour
 of the mocked implementation. For example check what happens if the mocked class throws
 an exception, or returns different responses. This is usually where you set up different
-mock behaviour by setting up the mock inside each unit test.
+mock behaviour by using the features of Moq inside each unit test.
 
-This library takes a different approach. With this package installed, the idea is to make
-re-usable mocks that can have their behaviour modified, but your unit test can still use all
-the power of Moq where you need it.
+This library offers an alternate approach. With this package installed you can make
+re-usable mocks that can have their behaviour modified. This means that unit tests can
+be very simple, or they can still use Moq to define behaviours where this makes sense.
 
-One of the reasons for suggesting this way of working, is this. If I write a NuGet package
-and distribute it to 100 other developers, each of those developers might go ahead and 
-write a whole bunch of mocks for the interfaces in my library. That's a lot of dev hours.
-If I write a re-usable mock, this will be a bit more work for me, but the other 100
-developers that use my library don't have to do any work at all. I think that's a net
-win for the community as a whole.
+One of the reasons for suggesting this approach, is this: If I write a NuGet package
+and distribute it to 100 other developers, each of those developers go ahead and 
+write a whole bunch of mocks for the interfaces in my library, that's a lot of dev hours.
+As the package author, if I write a set of re-usable mocks and distribute them with my
+package, this will be a bit more work for me, but the other 100 developers that use my 
+library don't have to do any work at all. I think that's a net win for the community as
+a whole.
 
-This is an example of a re-usable mock that can have it's behaviour controlled by the
-unit test. I never use the `DataTime` class to retrieve the current time directly,
-because it's hard to test that the code counts time correctly. Instead I define an
-`ITimeSource` interface and inject this into classes that need it, then I can move
-time back and forth in my unit tests.
+Below is an example of a re-usable mock that can have it's behaviour controlled by the
+unit test. In my code I never use the `DataTime` class to retrieve the current time
+directly because it's hard to test that the code counts time correctly. Instead I define
+an `ITimeSource` interface and inject this into classes that need it, then I can mock
+this interface and move time back and forth in my unit tests.
 
 This is the definition of `ITimeSource`
 
