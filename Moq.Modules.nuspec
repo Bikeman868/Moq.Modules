@@ -3,7 +3,7 @@
   <metadata>
     <id>Moq.Modules</id>
     <version>1.0.0</version>
-    <title>Modular, reusable mocks that can be distributed with shared libraries</title>
+    <title>Moq.Modules - reusable modular mocks</title>
     <authors>Martin Halliday</authors>
     <owners>Martin Halliday</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
