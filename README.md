@@ -18,7 +18,7 @@ This NuGet package solves a couple of problems
    those mocks is time consuming.
 
 This package solves both of these problems by allowing library authors to distribute mocks
-with their library, so that users of their library can use a mock the library in their unit
+with their library, so that users of their library can use a mock of the library in their unit
 tests.
 
 For example if you install the [Prius ORM](https://github.com/Bikeman868/Prius) and use it to
