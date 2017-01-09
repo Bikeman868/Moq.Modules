@@ -11,27 +11,47 @@ namespace Moq.Modules
 
         static TestBase()
         {
-            var mockImplementationProviderOnterface = typeof(IMockImplementationProvider);
+            var mockImplementationProviderInterface = typeof(IMockImplementationProvider);
 
-            _mockProviders = ReflectionHelper.GetTypes(
-                t => 
+            var mockProviders = ReflectionHelper.GetTypes(t => 
                     t.IsClass && 
                     !t.IsAbstract &&
-                    mockImplementationProviderOnterface.IsAssignableFrom(t))
-                .Select(t => t.GetConstructor(Type.EmptyTypes).Invoke(null))
-                .Cast<IMockImplementationProvider>()
-                .ToDictionary(p => p.MockedType);
+                    mockImplementationProviderInterface.IsAssignableFrom(t))
+                .ToList();
 
-            var concreteImplementationProviderOnterface = typeof(IConcreteImplementationProvider);
+            _mockProviders = new Dictionary<Type, IMockImplementationProvider>();
+            foreach (var providerType in mockProviders)
+            {
+                var provider = providerType.GetConstructor(Type.EmptyTypes).Invoke(null) as IMockImplementationProvider;
+                if (provider == null) continue;
+                if (_mockProviders.ContainsKey(provider.MockedType))
+                    throw new Exception(
+                        providerType.FullName + " and " +
+                        _mockProviders[provider.MockedType].GetType().FullName +
+                        " both provide mocked implementations of " + provider.MockedType.FullName);
+                _mockProviders.Add(provider.MockedType, provider);
+            }
 
-            _concreteProviders = ReflectionHelper.GetTypes
-                (t => 
-                    t.IsClass && 
+            var concreteImplementationProviderInterface = typeof(IConcreteImplementationProvider);
+
+            var concreteProviders = ReflectionHelper.GetTypes(t =>
+                    t.IsClass &&
                     !t.IsAbstract &&
-                    concreteImplementationProviderOnterface.IsAssignableFrom(t))
-                .Select(t => t.GetConstructor(Type.EmptyTypes).Invoke(null))
-                .Cast<IConcreteImplementationProvider>()
-                .ToDictionary(p => p.MockedType);
+                    concreteImplementationProviderInterface.IsAssignableFrom(t))
+                .ToList();
+
+            _concreteProviders = new Dictionary<Type, IConcreteImplementationProvider>();
+            foreach (var providerType in concreteProviders)
+            {
+                var provider = providerType.GetConstructor(Type.EmptyTypes).Invoke(null) as IConcreteImplementationProvider;
+                if (provider == null) continue;
+                if (_concreteProviders.ContainsKey(provider.MockedType))
+                    throw new Exception(
+                        providerType.FullName + " and " + 
+                        _concreteProviders[provider.MockedType].GetType().FullName +
+                        " both provide concrete implementations of " + provider.MockedType.FullName);
+                _concreteProviders.Add(provider.MockedType, provider);
+            }
         }
 
         public T SetupMock<T>() where T : class

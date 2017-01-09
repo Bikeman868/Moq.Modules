@@ -2,14 +2,14 @@
 <package >
   <metadata>
     <id>Moq.Modules</id>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <title>Moq.Modules - reusable modular mocks</title>
     <authors>Martin Halliday</authors>
     <owners>Martin Halliday</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Allows package authors to supply re-uable mocks for their library</description>
-    <copyright>Copyright 2015</copyright>
-    <releaseNotes>First release</releaseNotes>
+    <copyright>Copyright 2017</copyright>
+    <releaseNotes>Throws a helpful exception if the same interface is mocked multiple times</releaseNotes>
     <projectUrl>https://github.com/Bikeman868/Moq.Modules</projectUrl>
     <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
     <tags>moq mock reusable</tags>
