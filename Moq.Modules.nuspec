@@ -14,7 +14,7 @@
     <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
     <tags>moq mock reusable</tags>
     <dependencies>
-      <dependency id="Moq" version="4.2" />
+      <dependency id="Moq" version="4.2.1507.0118" />
     </dependencies>
     <references>
       <reference file="Moq.Modules.dll"/>
