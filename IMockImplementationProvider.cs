@@ -2,9 +2,8 @@
 
 namespace Moq.Modules
 {
-    public interface IMockImplementationProvider
+    public interface IMockImplementationProvider : IImplementationProvider
     {
-        Type MockedType { get; }
         void SetupMock<T>(IMockProducer mockProducer, Mock<T> mock) where T : class;
     }
 }
