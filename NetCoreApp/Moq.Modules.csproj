@@ -9,6 +9,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="ExampleUsage\**" />
+    <EmbeddedResource Remove="ExampleUsage\**" />
+    <None Remove="ExampleUsage\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Include="..\Source\ConcreteImplementationProvider.cs" Link="ConcreteImplementationProvider.cs" />
     <Compile Include="..\Source\IConcreteImplementationProvider.cs" Link="IConcreteImplementationProvider.cs" />
     <Compile Include="..\Source\IImplementationProvider.cs" Link="IImplementationProvider.cs" />
