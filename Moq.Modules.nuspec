@@ -2,13 +2,13 @@
 <package >
   <metadata>
     <id>Moq.Modules</id>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
     <title>Moq.Modules - reusable modular mocks</title>
     <authors>Martin Halliday</authors>
     <owners>Martin Halliday</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Allows package authors to supply re-uable mocks for their library</description>
-    <copyright>Copyright 2014-2019</copyright>
+    <copyright>Copyright Martin Halliday 2014-2019</copyright>
     <releaseNotes>Included specific builds for NetStandard and NetCore frameworks</releaseNotes>
     <projectUrl>https://github.com/Bikeman868/Moq.Modules</projectUrl>
     <license type="expression">Apache-2.0</license>

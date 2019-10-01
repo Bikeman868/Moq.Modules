@@ -2,11 +2,16 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
+    <Version>1.0.4</Version>
+    <Authors>Martin Halliday</Authors>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <Copyright>Copyright Martin Halliday 2014-2019</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="..\Source\ConcreteImplementationProvider.cs" Link="ConcreteImplementationProvider.cs" />
     <Compile Include="..\Source\IConcreteImplementationProvider.cs" Link="IConcreteImplementationProvider.cs" />
+    <Compile Include="..\Source\IImplementationProvider.cs" Link="IImplementationProvider.cs" />
     <Compile Include="..\Source\IMockImplementationProvider.cs" Link="IMockImplementationProvider.cs" />
     <Compile Include="..\Source\IMockProducer.cs" Link="IMockProducer.cs" />
     <Compile Include="..\Source\MockImplementationProvider.cs" Link="MockImplementationProvider.cs" />

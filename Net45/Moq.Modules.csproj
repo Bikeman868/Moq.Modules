@@ -58,6 +58,9 @@
     <Compile Include="..\Source\IConcreteImplementationProvider.cs">
       <Link>IConcreteImplementationProvider.cs</Link>
     </Compile>
+    <Compile Include="..\Source\IImplementationProvider.cs">
+      <Link>IImplementationProvider.cs</Link>
+    </Compile>
     <Compile Include="..\Source\IMockImplementationProvider.cs">
       <Link>IMockImplementationProvider.cs</Link>
     </Compile>
