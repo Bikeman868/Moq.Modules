@@ -1,61 +1,126 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace Moq.Modules
 {
     public class TestBase : IMockProducer
     {
-        protected static IDictionary<Type, IMockImplementationProvider> _mockProviders;
-        protected static IDictionary<Type, IConcreteImplementationProvider> _concreteProviders;
+        private static IDictionary<Type, ConstructorInfo> _mockProviderConstructors;
+        private static IDictionary<Type, ConstructorInfo> _concreteProviderConstructors;
 
-        static TestBase()
+        private IDictionary<Type, IMockImplementationProvider> _mockProviders;
+        private IDictionary<Type, IConcreteImplementationProvider> _concreteProviders;
+
+        public TestBase()
         {
-            var mockImplementationProviderInterface = typeof(IMockImplementationProvider);
+            EnsureInitialize();
+        }
 
-            var mockProviders = ReflectionHelper.GetTypes(t => 
-                    t.IsClass && 
-                    !t.IsAbstract &&
-                    mockImplementationProviderInterface.IsAssignableFrom(t))
-                .ToList();
+        private void EnsureInitialize()
+        {
+            if (_mockProviderConstructors == null || _concreteProviderConstructors == null)
+                Initialize();
+        }
 
-            _mockProviders = new Dictionary<Type, IMockImplementationProvider>();
-            foreach (var providerType in mockProviders)
-            {
-                var provider = providerType.GetConstructor(Type.EmptyTypes).Invoke(null) as IMockImplementationProvider;
-                if (provider == null) continue;
-                if (_mockProviders.ContainsKey(provider.MockedType))
-                    throw new Exception(
-                        providerType.FullName + " and " +
-                        _mockProviders[provider.MockedType].GetType().FullName +
-                        " both provide mocked implementations of " + provider.MockedType.FullName);
-                _mockProviders.Add(provider.MockedType, provider);
-            }
+        private void Initialize()
+        {
+            _mockProviderConstructors = FindConstructors<IMockImplementationProvider>();
+            _concreteProviderConstructors = FindConstructors<IConcreteImplementationProvider>();
+        }
 
-            var concreteImplementationProviderInterface = typeof(IConcreteImplementationProvider);
+        private IDictionary<Type, ConstructorInfo> FindConstructors<T>()
+        {
+            var providerInterface = typeof(T);
 
-            var concreteProviders = ReflectionHelper.GetTypes(t =>
+            var providers = ReflectionHelper.GetTypes(t =>
                     t.IsClass &&
                     !t.IsAbstract &&
-                    concreteImplementationProviderInterface.IsAssignableFrom(t))
+                    providerInterface.IsAssignableFrom(t))
                 .ToList();
 
-            _concreteProviders = new Dictionary<Type, IConcreteImplementationProvider>();
-            foreach (var providerType in concreteProviders)
+            var constructors = new Dictionary<Type, ConstructorInfo>();
+            foreach (var providerType in providers)
             {
-                var provider = providerType.GetConstructor(Type.EmptyTypes).Invoke(null) as IConcreteImplementationProvider;
-                if (provider == null) continue;
-                if (_concreteProviders.ContainsKey(provider.MockedType))
-                    throw new Exception(
-                        providerType.FullName + " and " + 
-                        _concreteProviders[provider.MockedType].GetType().FullName +
-                        " both provide concrete implementations of " + provider.MockedType.FullName);
-                _concreteProviders.Add(provider.MockedType, provider);
+                var constructor = providerType.GetConstructor(Type.EmptyTypes);
+                if (constructor == null)
+                    throw new Exception(providerType.FullName + " must have a default public constructor");
+
+                var instance = (IImplementationProvider)constructor.Invoke(Type.EmptyTypes);
+                if (constructors.ContainsKey(instance.MockedType))
+                {
+                    var conflictingConstructor = constructors[instance.MockedType];
+                    var typeToUse = ResolveConflict(instance.MockedType);
+                    if (typeToUse == null)
+                    {
+                        throw new Exception(
+                            conflictingConstructor.ReflectedType.FullName + " and " + constructor.ReflectedType.FullName +
+                            " both provide mocked implementations of " + instance.MockedType.FullName +
+                            ". You can override the ResolveConflict() method to write code that chooses which one to use.");
+
+                    }
+                    constructor = typeToUse.GetConstructor(Type.EmptyTypes);
+                }
+                constructors[instance.MockedType] = constructor;
+            }
+            return constructors;
+        }
+
+        /// <summary>
+        /// Override this method to resolve situations where there are two mocks for the same interface.
+        /// Do not call the one in the base class if you overrides this method
+        /// </summary>
+        /// <param name="interfaceType">The interface that was mocked</param>
+        /// <returns>Which mock implementation to use</returns>
+        protected virtual Type ResolveConflict(Type interfaceType)
+        {
+            return null;
+        }
+
+        protected void Reset()
+        {
+            _concreteProviders = null;
+            _mockProviders = null;
+        }
+
+        private void EnsureSetup<T>()
+        {
+            if (_concreteProviders == null)
+                _concreteProviders = new Dictionary<Type, IConcreteImplementationProvider>();
+
+            if (_concreteProviders.ContainsKey(typeof(T)))
+                return;
+
+            if (_mockProviders == null)
+                _mockProviders = new Dictionary<Type, IMockImplementationProvider>();
+
+            if (_mockProviders.ContainsKey(typeof(T)))
+                return;
+
+            ConstructorInfo constructor;
+            if (_concreteProviderConstructors.TryGetValue(typeof(T), out constructor))
+            {
+                var instance = (IConcreteImplementationProvider)constructor.Invoke(Type.EmptyTypes);
+                _concreteProviders[typeof(T)] = instance;
+                return;
+            }
+
+            if (_mockProviderConstructors.TryGetValue(typeof(T), out constructor))
+            {
+                var instance = (IMockImplementationProvider)constructor.Invoke(Type.EmptyTypes);
+                _mockProviders[typeof(T)] = instance;
             }
         }
 
+        /// <summary>
+        /// Returns a mock implementation of an interface
+        /// </summary>
+        /// <typeparam name="T">The type of interface to mock</typeparam>
         public T SetupMock<T>() where T : class
         {
+            EnsureSetup<T>();
+
             IConcreteImplementationProvider concreteProvider;
             if (_concreteProviders.TryGetValue(typeof(T), out concreteProvider))
                 return concreteProvider.GetImplementation<T>(this);
@@ -73,6 +138,8 @@ namespace Moq.Modules
 
         protected TMock GetMock<TMock, I>()
         {
+            EnsureSetup<I>();
+
             if (_concreteProviders.ContainsKey(typeof(I)))
                 return (TMock)_concreteProviders[typeof(I)];
 

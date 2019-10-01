@@ -71,6 +71,10 @@ The key elements of this example are:
    get access to the mocks of the other interfaces that you need. Note that this is not 
    illustrated in the example above.
 
+Note that when you write a mock this way every time `SetupMock` is called a different mocked
+instance will be returned. If you want instances to share state then this should be stored
+in the implementation privider which is only constructed once.
+
 ## Writing a re-useable mock using a class
 This is and example of mocking an interface by writing a class that implements the interface 
 rather than using Moq. The way that Moq.Modules works means that you can switch between
@@ -95,6 +99,9 @@ The key elements of this example are:
    interface that is being mocked.
 3. If your mock depends on other mocks, then you can use the `mockProducer` parameter to get access
    to the mocks of the other interfaces you need. Note that this is not illustrated in the example above.
+   
+Note that your implementation privider can choose to return the same instance each time that `SetupMock` is
+called or construct a new instance each time.
 
 ## Making mocks available to unit tests
 If you include the assembly containing your mocks in the project that contains the unit tests, these mocks
